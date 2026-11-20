@@ -1,0 +1,86 @@
+package com.cp.contentprovider;
+
+import android.app.*;
+import android.os.*;
+import android.content.*;
+import android.database.Cursor;
+import android.widget.*;
+
+public class MainActivity extends Activity {
+
+    EditText roll, name;
+    Button save, show;
+    TextView result;
+
+    @Override
+    protected void onCreate(Bundle b) {
+        super.onCreate(b);
+        setContentView(R.layout.activity_main);
+
+        roll = findViewById(R.id.roll);
+        name = findViewById(R.id.name);
+        save = findViewById(R.id.save);
+        show = findViewById(R.id.show);
+        result = findViewById(R.id.result);
+
+        save.setOnClickListener(v -> {
+
+            String r = roll.getText().toString().trim();
+            String n = name.getText().toString().trim();
+
+            if (r.isEmpty() || n.isEmpty()) {
+                Toast.makeText(this,
+                        "Please enter all details",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            ContentValues values = new ContentValues();
+            values.put("roll", r);
+            values.put("name", n);
+
+            getContentResolver().insert(
+                    StudentProvider.URI, values);
+
+            Toast.makeText(this,
+                    "Student Saved Successfully",
+                    Toast.LENGTH_SHORT).show();
+
+            roll.setText("");
+            name.setText("");
+        });
+
+        show.setOnClickListener(v -> {
+
+            Cursor c = getContentResolver().query(
+                    StudentProvider.URI,
+                    null, null, null, null);
+
+            StringBuilder data = new StringBuilder();
+
+            if (c != null) {
+
+                while (c.moveToNext()) {
+
+                    String r = c.getString(
+                            c.getColumnIndexOrThrow("roll"));
+
+                    String n = c.getString(
+                            c.getColumnIndexOrThrow("name"));
+
+                    data.append("Roll No: ").append(r)
+                            .append("\nName: ").append(n)
+                            .append("\n\n");
+                }
+
+                c.close();
+            }
+
+            if (data.length() == 0) {
+                result.setText("No Student Found");
+            } else {
+                result.setText(data.toString());
+            }
+        });
+    }
+}
